@@ -16,6 +16,9 @@ lr add llm 8123
 
 fnox exec cargo run
 
-# in a different terminal
+# quick test: in a different terminal (this is what your agents will do)
 curl -skv https://llm.localhost/v1/models
+
+# now launch your favourite tool
+OPENAI_BASE_URL=https://llm.localhost claude
 ```
