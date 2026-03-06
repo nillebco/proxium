@@ -35,7 +35,7 @@ lr add openai 8123
 lr add claude 8123
 
 # Run with fnox to inject secrets at startup
-fnox exec cargo run
+fnox exec proxium serve
 ```
 
 ### Test It
@@ -48,6 +48,57 @@ curl -skv https://openai.localhost/v1/models
 
 # Use with tools that accept BASE_URL
 OPENAI_BASE_URL=https://openai.localhost ANTHROPIC_BASE_URL=https://claude.localhost claude
+```
+
+## CLI Reference
+
+### `proxium serve [config.toml]`
+
+Start the proxy server. Defaults to `config.toml` in the current directory.
+
+```sh
+proxium serve
+proxium serve /etc/proxium/config.toml
+```
+
+### `proxium keys`
+
+Manage API keys (used when `deployment.mode = "apikey"`).
+
+All subcommands accept `--keys-file <path>` to override the default store location (`api_keys.json`).
+
+#### `proxium keys add <user_id> [--expires <ISO_DATE>]`
+
+Create a new API key for a user. Returns the key ID and secret (the secret is shown only once).
+
+```sh
+proxium keys add alice
+# key_id: key_3f8a1c2d4e5b6f7a
+# secret: pk_Xy9zAbCdEfGhIjKlMnOpQrStUvWxYz01234567
+
+proxium keys add alice --expires 2026-12-31T23:59:59Z
+proxium keys add ci-bot --keys-file /var/lib/proxium/api_keys.json
+```
+
+#### `proxium keys list [--keys-file <path>]`
+
+List all API keys with their user ID and expiry date.
+
+```sh
+proxium keys list
+# key_id                              user_id               expires_at
+# ------------------------------------------------------------------------
+# key_3f8a1c2d4e5b6f7a               alice                 never
+# key_9b7c6d5e4f3a2b1c               ci-bot                2026-12-31T23:59:59+00:00
+```
+
+#### `proxium keys revoke <key_id> [--keys-file <path>]`
+
+Revoke an API key by its ID.
+
+```sh
+proxium keys revoke key_3f8a1c2d4e5b6f7a
+# OK
 ```
 
 ## Configuration
@@ -66,10 +117,14 @@ OPENAI_BASE_URL=https://openai.localhost ANTHROPIC_BASE_URL=https://claude.local
 ```toml
 [deployment]
 mode = "none"  # "tailscale", "oidc", "apikey", "none"
+# Required when mode = "apikey"; defaults to api_keys.json
+key_store_path = "api_keys.json"
 
 [server]
 listen = "0.0.0.0:8123"
 ```
+
+When `mode = "apikey"`, callers must include an `X-Api-Key: <secret>` header. Keys are managed with `proxium keys add/list/revoke` and persisted to `key_store_path`.
 
 ### Service Definitions
 

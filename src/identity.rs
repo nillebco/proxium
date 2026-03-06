@@ -1,4 +1,5 @@
 use axum::http::HeaderMap;
+use crate::keys::KeyStore;
 use std::net::SocketAddr;
 
 #[derive(Debug, Clone)]
@@ -7,6 +8,7 @@ pub struct Identity {
     pub login: String,
     pub source: IdentitySource,
 }
+
 
 #[derive(Debug, Clone)]
 #[allow(dead_code)]
@@ -102,16 +104,20 @@ pub async fn resolve_tailscale(
     })
 }
 
-pub async fn resolve_apikey(headers: &HeaderMap) -> Result<Identity, IdentityError> {
-    let key = headers
+pub fn resolve_apikey(headers: &HeaderMap, key_store: &KeyStore) -> Result<Identity, IdentityError> {
+    let secret = headers
         .get("X-Api-Key")
         .ok_or(IdentityError::Denied("missing X-Api-Key header".into()))?
         .to_str()
         .map_err(|_| IdentityError::InvalidHeader)?;
 
+    let api_key = key_store
+        .verify(secret)
+        .ok_or_else(|| IdentityError::Denied("invalid or expired API key".into()))?;
+
     Ok(Identity {
-        name: format!("apikey:{}", &key[..8.min(key.len())]),
-        login: key.to_string(),
+        name: api_key.user_id.clone(),
+        login: api_key.user_id.clone(),
         source: IdentitySource::ApiKey,
     })
 }

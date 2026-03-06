@@ -10,6 +10,7 @@ use crate::config::DeploymentMode;
 use crate::container::ContainerManager;
 use crate::destination::ServiceRegistry;
 use crate::identity::{self, Identity, IdentityError};
+use crate::keys::KeyStore;
 use crate::secrets;
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -19,6 +20,7 @@ pub struct AppState {
     pub registry: ServiceRegistry,
     pub containers: Option<ContainerManager>,
     pub deployment_mode: DeploymentMode,
+    pub key_store: Option<KeyStore>,
 }
 
 pub async fn handle_request(
@@ -32,7 +34,7 @@ pub async fn handle_request(
     let headers = req.headers().clone();
 
     // 1. Resolve identity
-    let identity = resolve_identity(&state.deployment_mode, &headers, Some(peer))
+    let identity = resolve_identity(&state.deployment_mode, &headers, Some(peer), state.key_store.as_ref())
         .await
         .map_err(|e| {
             tracing::warn!(error = %e, "identity resolution failed");
@@ -133,6 +135,7 @@ async fn resolve_identity(
     mode: &DeploymentMode,
     headers: &HeaderMap,
     peer_addr: Option<SocketAddr>,
+    key_store: Option<&KeyStore>,
 ) -> Result<Identity, IdentityError> {
     match mode {
         DeploymentMode::None => Ok(Identity {
@@ -141,7 +144,12 @@ async fn resolve_identity(
             source: identity::IdentitySource::Local,
         }),
         DeploymentMode::Tailscale => identity::resolve_tailscale(headers, peer_addr).await,
-        DeploymentMode::Apikey => identity::resolve_apikey(headers).await,
+        DeploymentMode::Apikey => {
+            let store = key_store.ok_or_else(|| {
+                IdentityError::Denied("API key store not configured".into())
+            })?;
+            identity::resolve_apikey(headers, store)
+        }
         DeploymentMode::Oidc => Err(IdentityError::Denied("OIDC not yet implemented".into())),
     }
 }

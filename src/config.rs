@@ -11,6 +11,8 @@ pub struct Config {
 pub struct DeploymentConfig {
     #[serde(default)]
     pub mode: DeploymentMode,
+    /// Path to the API key store JSON file (used when mode = "apikey")
+    pub key_store_path: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Clone, PartialEq)]
