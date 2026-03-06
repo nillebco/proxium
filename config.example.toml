@@ -1,0 +1,24 @@
+[deployment]
+mode = "none"  # "tailscale", "oidc", "apikey", "none"
+
+[server]
+listen = "0.0.0.0:8123"
+
+# Secrets are resolved from environment variables via env:// refs.
+# Use `fnox exec cargo run` to inject secrets at startup.
+
+[[services]]
+hostname = "openai.internal.domain.com"
+upstream = "https://api.openai.com"
+api_key_ref = "env://OPENAI_API_KEY"
+inject_header = "Authorization"
+inject_prefix = "Bearer "
+ephemeral = false
+
+[[services]]
+hostname = "myagent.internal.domain.com"
+upstream = "http://localhost:9090"
+api_key_ref = "env://AGENT_API_KEY"
+ephemeral = true
+container_image = "my-agent:latest"
+idle_timeout_secs = 300

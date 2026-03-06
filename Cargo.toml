@@ -1,0 +1,23 @@
+[package]
+name = "proxium"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+axum = { version = "0.8", features = ["macros"] }
+hyper = { version = "1", features = ["full"] }
+hyper-util = { version = "0.1", features = ["client-legacy", "http1", "http2", "tokio"] }
+hyper-tls = "0.6"
+http-body-util = "0.1"
+tokio = { version = "1", features = ["full"] }
+tower = { version = "0.5", features = ["util"] }
+serde = { version = "1", features = ["derive"] }
+toml = "0.8"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+reqwest = { version = "0.12", features = ["json"] }
+bollard = "0.18"
+dashmap = "6"
+serde_json = "1"
+thiserror = "2"
+chrono = { version = "0.4", features = ["serde"] }

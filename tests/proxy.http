@@ -1,0 +1,38 @@
+### Test 1: Unknown host returns 404
+GET http://localhost:8080/
+Host: unknown.host.com
+X-Api-Key: testuser1234
+
+?? status == 404
+
+### Test 2: Known host proxies to upstream (echo server on 9090)
+GET http://localhost:8080/hello
+Host: echo.local
+X-Api-Key: testuser1234
+
+?? status == 200
+?? body includes hello from upstream
+
+### Test 3: Missing API key returns 401
+GET http://localhost:8080/
+Host: echo.local
+
+?? status == 401
+
+### Test 4: Missing env var for secret returns 500
+# Without fnox exec, OPENAI_API_KEY is unset so env:// resolution fails
+GET http://localhost:8080/v1/models
+Host: openai.internal.domain.com
+X-Api-Key: testuser1234
+
+?? status == 500
+
+### Test 5: POST body is forwarded
+POST http://localhost:8080/echo
+Host: echo.local
+X-Api-Key: testuser1234
+Content-Type: application/json
+
+{"message": "proxied"}
+
+?? status == 200
