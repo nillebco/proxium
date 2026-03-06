@@ -5,9 +5,12 @@ Your API keys are yours: don't give them to an agent.
 ## Try this
 
 Get `lr` here: [localhost-router](https://github.com/nillebco/localhost-router).
+
 Get `fnox` here: [fnox](https://github.com/jdx/fnox)
-Prepare a fnox.toml (you might require `rbw`, `bitwarden-cli`, or any supported secrets manager).
-Copy the config.example.toml to a config.toml
+
+Copy `fnox.example.toml` to `fnox.toml` (you might require `rbw`, `bitwarden-cli`, or any supported secrets manager), update it to match your preferences.
+
+Copy the `config.example.toml` to a `config.toml`, update it to match your hostnames.
 
 ```sh
 # only once, to set up an host name associated with this service
