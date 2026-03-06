@@ -7,3 +7,4 @@ backend = "rbw"
 
 [secrets]
 OPENAI_API_KEY= { value = "OpenAI Default Project API Key/notes", provider = "bitwarden" }
+ANTHROPIC_API_KEY = { value = "Anthropic Default Project API Key/notes", provider = "bitwarden" }
